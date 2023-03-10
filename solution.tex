@@ -1,0 +1,386 @@
+\documentclass[titlepage,reqno]{amsart}
+
+\usepackage{amsaddr,amsthm,mathtools}
+\usepackage[inline]{enumitem}
+
+ \theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newtheorem{exercise*}[exercise]{*Exercise}
+\theoremstyle{remark}
+\newtheorem*{solution}{Solution}
+
+\newenvironment{hint}{\begin{quote}{\bfseries Hint:}}{\end{quote}}
+\newenvironment{experiment}[1]{\begin{quote}{\bfseries #1:}\begin{itshape}}{\end{itshape}\end{quote}}
+
+\newcommand{\assign}{\coloneq}
+\newcommand{\ugets}{\overset{\text{u}}{\gets}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\title[Solutions to Katz-Lindell's Textbook]
+{Introduction to Modern Cryptography \\ -- 3rd Edition \\ Solutions Manual}
+\author{Hao-Ming Peng}
+
+\begin{document}
+\begin{abstract}
+    This article presents my solutions to exercises in the 3rd edition of Katz and Lindell's textbook
+    on cryptography ``Introduction to Modern Cryptography''.
+
+    Exercises in each chapter of the textbook are grouped under a section with the same title.
+    Starred exercises are recommended to try, based on my own learning experience.
+    Most of them are proofs of propositions, and there are also some that provide important 
+    insights for later chapters.
+\end{abstract}
+\maketitle
+
+\section{Introduction}
+\begin{exercise}
+    Decrypt the ciphertext provided at the end of the section on mono- alphabetic substitution ciphers.
+\end{exercise}
+
+\newcommand{\Gen}{\mathsf{Gen}}
+\newcommand{\Enc}{\mathsf{Enc}}
+\newcommand{\Dec}{\mathsf{Dec}}
+\begin{exercise}
+    Provide a formal definition of the $\Gen$, $\Enc$, and $\Dec$ algorithms for the mono-alphabetic substitution cipher.
+
+    \begin{solution}
+        The message space $\mathcal{M}$ consists of all finite sequences of English letters, without distinction between upper
+        and lower case.
+        The key space $\mathcal{K}$ is the set of permutations over the set of English letters.
+        \begin{description}
+            \item[$\Gen$] chooses a permutation $p\ugets\mathcal{K}$.
+            \item[$\Enc$] given a permutation $p$ and a message $m \in \mathcal{M}$, where $m = m_1 m_2 \dots m_\ell$,
+                outputs the ciphertext:
+                \begin{equation*}
+                    c \assign c_1 c_2 \dots c_\ell \quad \text{,where $c_i = p(m_i)$.}
+                \end{equation*}
+            \item[$\Dec$] given a permutation $p$ and a ciphertexct $c = c_1 c_2 \dots c_\ell$,
+                outputs the plaintext:
+                \begin{equation*}
+                    m \assign m_1 m_2 \dots m_\ell \quad \text{,where $m_i = p^{-1}(c_i)$.}
+                \end{equation*}
+        \end{description}
+        \qed
+    \end{solution}
+\end{exercise}
+
+\begin{exercise}
+    Provide a formal definition of the $\Gen$, $\Enc$, and $\Dec$ algorithms for the Vigen\`ere cipher.
+    (Note: there are several plausible choices for $\Gen$; choose one.)
+
+    \begin{solution}
+        Equate the English alphabet with the set $\Z_{26}$, that is $\mathtt{a} = 0$, $\mathtt{b} = 1$, etc.
+        The message space $\mathcal{M}$ consists of all finite sequences of $\Z_{26}$.
+        Index of sequence elements starts from $0$.
+        \begin{description}
+            \item[$\Gen$] given a length $n$, outputs a sequence:
+                \begin{equation*}
+                    k \assign k_0 k_1 k_2 \dots k_n \quad \text{,where $k_i \ugets \Z_{26}$.}
+                \end{equation*}
+
+            \item[$\Enc$] given a key $k$ and a message $m$, where
+                $k = k_0 k_1 \dots k_n$ and $m = m_0 m_1 \dots m_\ell$,
+                outputs the ciphertext:
+                \begin{equation*}
+                    c \assign c_0 c_1 \dots c_\ell \quad 
+                    \text{,where $c_i = m_i + k_{i \bmod{n+1}} \pmod{26}$}.
+                \end{equation*}
+            \item[$\Dec$] given a key $k$ and a ciphertext $c$, where
+                $k = k_0 k_1 \dots k_n$ and $c = c_0 c_1 \dots c_\ell$,
+                outputs the plaintext:
+                \begin{equation*}
+                    m \assign m_0 m_1 \dots m_\ell \quad
+                    \text{,where $m_i = c_i - k_{i \bmod{n+1}} \pmod{26}$}.
+                \end{equation*}
+        \end{description}
+        \qed
+    \end{solution}
+\end{exercise}
+
+\begin{exercise}
+    Say you are given a ciphertext that corresponds to English-language text that was encrypted using either 
+    the shift cipher or the Vigen\`ere cipher with period greater than $1$. How could you tell which was the case?
+    
+    \begin{solution}
+        Let $q_i$ be the frequency of the $i$th letter in the ciphertext.
+        If the ciphertext was encrypted by the shift cipher, then $\{q_i\}$ is a permutation of 
+        English-letter frequency.
+        Therefore, $\sum_{i} q_i^2 \approx 0.65$.
+        If it was encrypted by Vigen\`ere cipher with period greater than $1$,  
+        the frequency distribution might close to uniform.
+        Hence, $\sum_{i} q_i^2 \approx \sum_{i}(\frac{1}{26})^2 \approx 0.38$.
+        The encryption scheme then be determined by check which of $0.65$ or $0.38$ is closer to $\sum_i q_i^2$.
+        \qed
+    \end{solution}
+\end{exercise}
+
+\begin{exercise}
+    Implement the attacks described in this chapter for the shift cipher and the Vigen\`ere cipher.
+\end{exercise}
+
+\begin{exercise}
+    The shift and Vigen\`ere ciphers can also be defined on the 256-character alphabet consisting 
+    of all possible bytes (8-bit strings), and using XOR instead of modular addition.
+    \begin{enumerate}[label=(\alph*)]
+        \item Provide a formal definition of both schemes in this case.
+        \item Discuss how the attacks we have shown in this chapter can be modified to break these schemes.
+    \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+    The index of coincidence method relies on a known value for the sum of the squares of plaintext-letter frequencies 
+    (cf. Equation (1.1)). Why would it not work using the $\sum_i p_i$ itself?
+
+    \begin{solution}
+        $\sum_i p_i$ always equal $1$ for every distribution, so it doesn't provide statistical information
+        of the underlying structure.
+        \qed
+    \end{solution}
+\end{exercise}
+
+\begin{exercise*}
+    Show that the shift, substitution, and Vigen\`ere ciphers are all trivial to break using a chosen-plaintext attack.
+    How much chosen plaintext is needed to recover the key for each of the ciphers?
+
+    \begin{solution}
+        Suppose that random plaintext is encrypted, instead of English-language text, and the ciphertext is 
+        eavesrdropped by the adversary.
+        Since that the plaintext is random, it can be decrypted only by recovering the key.
+
+        A single-letter plaintext is sufficient to mount the key-recovery attack on the shift cipher,
+        since each plaintext letter is shifted forward the same value.
+
+        In the substitution cipher, the same plaintext letter always mapped to the same ciphertext letter.
+        Choosing any plaintext that contains all letters in the alphabet is sufficient 
+        to build the full look-up table (key).
+        Omiting one letter in the alphabet is fine, since the look-up table is one-to-one.
+        Hence, if the alphabet contains $n$ letters, then a $(n-1)$-length plaintext is sufficient.
+
+        For Vigen\`ere cipher, there are three distinct threat models to consider, regarding the
+        knowledge and adaptivity of the adversaries:
+        \begin{itemize}[leftmargin=*]
+            \item  The period of a Vigen\`ere cipher is known: 
+                Any plaintext whose length is equal to the period is sufficient to recover the full key.
+            \item The period is unknown and the adversary can choose plaintext adaptively, that is, 
+                \emph{after} obtaining the ciphertext:
+                The adversary can choose a plaintext that is of the same length as the ciphertext to be decrypted.
+            \item The period is unknown and the adverary can choose plaintext only \emph{before} obtaining the ciphertext:
+                The adversary can choose a plaintext of arbitrary length, but this only reveals partial plaintext if 
+                the ciphertext to be decrypted is longer. (If shorter, it works the same as previous case.) 
+        \end{itemize}
+        \qed
+    \end{solution}
+\end{exercise*}
+
+\section{Perfectly Secrect Encryption}
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    Prove Lemma 2.7.
+
+    \newcommand{\PrivKeav}[1]{\mathsf{PrivK^{eav}_{#1}}}
+    \begin{solution} 
+    Prove perfect secrecy implies perfect indistinguishability by appeal to Lemma~2.5:
+    \begin{align*}
+        &\Pr[\PrivKeav{\mathcal{A},\mathrm{\Pi}}=1] \\
+        =& \sum_{b'\in\{0,1\}}\Pr[\mathrm{out}_\mathcal{A}=b' \wedge b=b']\\
+        =& \sum_{c\in\mathcal{C}} \sum_{b'\in\{0,1\}} \Pr[\mathcal{A}(c)=b' \wedge \Enc_K(m_{b'}) = c \wedge b=b'] \\
+        =& \sum_{c\in\mathcal{C}} \sum_{b'\in\{0,1\}}  \Pr[\mathcal{A}(c)=b'] \Pr[\Enc_K(m_{b'}) = c] \Pr[b = b'] \\
+        =& \frac{1}{2} \sum_{c\in\mathcal{C}} \Pr[\Enc_K(m) = c](\mathcal{A}(c)=0 + \mathcal{A}(c)=1) && \text{(Lem.~2.5)}\\
+        =&  \frac{1}{2} \sum_{c\in\mathcal{C}} \Pr[\Enc_K(m) = c] = 1/2.
+    \end{align*}
+
+    Prove perfect indistinguishability implies perfect secrecy by contradiction.
+    Suppose that $\Pi$ is perfectly indistinguishable.
+    If $\Pi$ is not perfectly secret, Lemma~2.5 tells that
+    there exists a pair of messages $m, m'$ and a cipherext $c'$ such that
+    \[
+        \Pr[\Enc_K(m) = c'] \neq \Pr[\Enc_K(m') = c'].
+    \]
+
+    Consider an adverary $\mathcal{A}$ who
+    \begin{enumerate*}
+        \item chooses $m_0 = m$ and $m_1 = m'$, and
+        \item outputs $0$ if $c = c'$; otherwise, outputs $1$. 
+    \end{enumerate*}
+    Show that $\Pr[\PrivKeav{\mathcal{A},\mathrm{\Pi}}=1] \neq 1/2$:
+    \begin{align*}
+        &\Pr[\PrivKeav{\mathcal{A},\mathrm{\Pi}}=1] \\
+        =& \sum_{c\in\mathcal{C}} \sum_{b'\in\{0,1\}}  \Pr[\mathcal{A}(c)=b'] \Pr[\Enc_K(m_{b'}) = c] \Pr[b = b'] \\
+        =& \frac{\Pr[\Enc_K(m_0)=c'] + \Pr[\Enc_K(m_1) \neq c']}{2} \\
+        =& \frac{\Pr[\Enc_K(m)=c'] + 1 - \Pr[\Enc_K(m') = c']}{2} \\
+        \neq& 1/2.
+    \end{align*}
+    The third line is due to $\Pr[\mathcal{A}(c')=0] = 1$ and $\Pr[\mathcal{A}(c') = 1] = 0$.
+    This contradits that $\Pi$ is perfectly indistinguishable.
+    Hence, it must be the case that $\Pi$ is perfectly secret.
+    \qed
+    \end{solution}
+\end{exercise}
+
+
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise}
+    
+\end{exercise}
+
+\begin{exercise*}
+    In this problem we consider definitions of perfect secrecy for the encryption of two messages (using the same key). 
+    Here we consider distributions on pairs of messages from the message space $\mathcal{M}$;
+    we let $M_1, M_2$ be random variables denoting the first and second message, respectively.
+    (These random variables are not assumed to be independent.) 
+    We generate a (single) key $k$, sample a pair of messages $(m_1,m_2)$ according to the given distribution, 
+    and then compute ciphertexts $c_1 \gets \Enc_k(m_1)$ and $c_2 \gets \Enc_k(m_2)$;
+    this induces a distribution on pairs of ciphertexts and we let $C_1, C_2$ be the corresponding random variables.
+
+    \begin{enumerate}[label=(\alph*)]
+        \item Say encryption scheme $(\Gen,\Enc,\Dec)$ is \emph{perfectly secret for two messages}
+        if for all distributions on $\mathcal{M} \times \mathcal{M}$, all $m_1, m_2 \in M$, 
+        and all ciphertexts $c_1, c_2 \in C$ with $\Pr[C_1 = c1 \wedge C_2 = c_2] > 0$:
+        \begin{align*}
+            \Pr[M_1 =m_1 \wedge M_2 = m_2 &\mid C_1 = c_1 \wedge C_2 = c_2]  \\
+                = &\Pr[M_1 =m_1 \wedge M_2 = m_2].
+        \end{align*}
+        Prove that \emph{no} encryption scheme can satisfy this definition.
+
+        \begin{hint}
+            Take $c_1 = c_2$.
+        \end{hint}
+
+        \item Say encryption scheme $(\Gen,\Enc,\Dec)$ is \emph{perfectly secret for two messages}
+        if for all distributions on $\mathcal{M} \times \mathcal{M}$, all $m_1, m_2 \in M$ where he first and second messages 
+        are guaranteed to be different (i.e., distributions on pairs of distinct messages), 
+        and all ciphertexts $c_1, c_2 \in C$ with $\Pr[C_1 = c1 \wedge C_2 = c_2] > 0$:
+        \begin{align*}
+            \Pr[M_1 =m_1 \wedge M_2 = m_2 &\mid C_1 = c_1 \wedge C_2 = c_2]  \\
+                = &\Pr[M_1 =m_1 \wedge M_2 = m_2].
+        \end{align*}
+        Show an encryption scheme that provably satisfies this definition.
+
+        \begin{hint}
+            The encryption scheme you propose need not be efficient, although an efficient solution is possible.
+        \end{hint}
+    \end{enumerate}
+
+    \begin{solution} \hfill
+        \begin{enumerate}[leftmargin=*,label=(\alph*)]
+            \item Let $m, m' \in \mathcal{M}$ with $m \neq m'$. Consider the distribution:
+                \begin{gather*}
+                    \Pr[M_1 = m \wedge M_2 = m] = 1/2 \\
+                    \Pr[M_1 = m \wedge M_2 = m'] = 1/2. 
+                \end{gather*}
+                Then if $c_1 = c = c_2$:
+                \begin{align*}
+                      &\Pr[M_1 = m \wedge M_2 = m' \mid C_1 = c \wedge C_2 = c] \\
+                    = &\Pr[M_1 = m \wedge M_2 = m' \mid \Enc_K(M_1)= \Enc_K(M_2) = c] \\
+                    = &\Pr[M_1 = m \wedge M_2 = m' \mid M_1 = M_2 = \Dec_K(c)] \\
+                    = &\ 0 \neq  \Pr[M_1 = m \wedge M_2 = m'].
+                \end{align*}
+                Hence, the definition can not be satisfied.
+
+            \item 
+            The failure of one-time pad is due to that its encryption algorithm injects
+            algebraic properties into its ciphertexts.
+            The idea is to use a uniform permutaion to encrypt, so that each ciphertext
+            is independent.
+            \footnote{It is like a substitution cipher which enforces that all characters in a plaintext are distinct.}
+            
+            The message space is a single bit $\mathcal{M} = \{0,1\}$ and $\Pi = (\Gen,\Enc,\Dec)$ works
+            as:
+            \begin{description}
+                \item[$\Gen$] chooses a uniform permutation of $\{0,1\}$. The key space contains
+                    the two bijections $f(x)=x$ and $g(x) = \neg x$.
+                \item[$\Enc$] takes as inputs a permutation $p$ and a message $m \in \{0,1\}$, and outputs 
+                    \[
+                        c \assign p(m).
+                    \]
+                \item[$\Dec$] takes as inputs a permutation $p$ a ciphertext $c$, and outputs
+                    \[
+                        m \assign p^{-1}(m).
+                    \]
+            \end{description}
+        
+            \noindent
+            Consider without loss of generality that $m_1 = 0$ and $m_2 = 1$:
+            \begin{align*}
+                &\Pr[M_1 = 0 \wedge M_2 = 1 \mid C_1 = c_1 \wedge C_2 = c_2] \\
+                = &\Pr[M_1 = 0 \wedge M_2 = 1 \mid \Enc_K(M_1)=c_1 \Enc_K(M_2) = c_2] \\
+                = &\frac{\Pr[\Enc_K(0)=c_1 \wedge \Enc_K(1) = c_2] \Pr[M_1 = 0 \wedge M_2 = 1]}
+                {\Pr[\Enc_K(M_1)=c_1 \wedge \Enc_K(M_2) = c_2]}
+            \end{align*}
+            The two statements $\Enc_K(0)=c_1$ and $\Enc_K(1) = c_2$ uniquely determines a permutation over $\{0,1\}$.
+            Therefore, 
+            $\Pr[\Enc_K(0)=c_1 \wedge \Enc_K(1) = c_2] = 1/2$.
+            Similarly, $\Pr[\Enc_K(M_1)=c_1 \wedge \Enc_K(M_2) = c_2] = 1/2$.
+            Hence, 
+            \[
+                \Pr[M_1 = 0 \wedge M_2 = 1 \mid C_1 = c_1 \wedge C_2 = c_2] = \Pr[M_1 = 0 \wedge M_2 = 1].
+            \]
+            The scheme $\Pi$ acheives the above definition.
+            \qed
+        \end{enumerate}
+    \end{solution}
+\end{exercise*}
+\end{document}
